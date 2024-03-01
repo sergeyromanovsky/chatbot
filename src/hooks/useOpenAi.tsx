@@ -2,9 +2,12 @@
 import { useEffect, useState } from "react";
 import OpenAI from "openai";
 import { useAppContext } from "./useAppContext";
+import { useToast } from "@/components/UI/Toaster/useToast";
 
 const useOpenAi = () => {
   const { selectedItem, apiKey, addMessage, setIsLoading } = useAppContext();
+
+  const { toast } = useToast();
 
   const [openAiClient, setOpenAiClient] = useState<OpenAI | null>(null);
 
@@ -18,13 +21,22 @@ const useOpenAi = () => {
   }, [apiKey]);
 
   const generateResponse = async (prompt: string) => {
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-    selectedItem === "chat-gpt"
-      ? await getChatCompletion(prompt)
-      : await generateImage(prompt);
+      selectedItem === "chat-gpt"
+        ? await getChatCompletion(prompt)
+        : await generateImage(prompt);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.message,
 
-    setIsLoading(false);
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const generateImage = async (prompt: string) => {
